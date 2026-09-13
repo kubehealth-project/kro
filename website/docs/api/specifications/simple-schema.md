@@ -448,6 +448,22 @@ override them with its own values.
 
 :::
 
+### Optional KubeHealth field
+
+Enable standard KubeHealth propagation at the RGD spec level:
+
+```kro
+spec:
+  kubehealth:
+    standardHealthPropagation: true
+```
+
+When enabled, kro also injects and owns `status.kubeHealth`. It assesses the
+resources created by the RGD's `template` entries and aggregates their
+reconciliation and availability. Lifecycle is derived from the generated
+instance. Do not declare `kubeHealth` in `schema.status` while this option is
+enabled.
+
 ## Additional Printer Columns
 
 You can define `additionalPrinterColumns` for the created CRD through the ResourceGraphDefinition by setting them on `spec.schema.additionalPrinterColumns`.

@@ -50,6 +50,32 @@ var (
 			},
 		},
 	}
+	kubeHealthReconciliationDimensionType = kubeHealthDimensionSchema(
+		"Reconciled", "InProgress", "Failed", "Suspended", "Unknown", "NotApplicable",
+	)
+	kubeHealthAvailabilityDimensionType = kubeHealthDimensionSchema(
+		"Available", "PartiallyAvailable", "Unavailable", "Unknown", "NotApplicable",
+	)
+	kubeHealthLifecycleDimensionType = kubeHealthDimensionSchema(
+		"Active", "Terminating",
+	)
+	defaultKubeHealthType = extv1.JSONSchemaProps{
+		Type:     "object",
+		Required: []string{"contractVersion", "observedGeneration", "reconciliation", "availability", "lifecycle"},
+		Properties: map[string]extv1.JSONSchemaProps{
+			"contractVersion": {
+				Type: "string",
+				Enum: []extv1.JSON{{Raw: []byte(`"v1alpha1"`)}},
+			},
+			"observedGeneration": {
+				Type:    "integer",
+				Minimum: new(float64),
+			},
+			"reconciliation": kubeHealthReconciliationDimensionType,
+			"availability":   kubeHealthAvailabilityDimensionType,
+			"lifecycle":      kubeHealthLifecycleDimensionType,
+		},
+	}
 	// additionalPrinterColumns specifies additional columns returned in Table output.
 	// See https://kubernetes.io/docs/reference/using-api/api-concepts/#receiving-resources-as-tables for details.
 	// Sample output for `kubectl get clusters`
@@ -83,3 +109,33 @@ var (
 		},
 	}
 )
+
+func kubeHealthDimensionSchema(statuses ...string) extv1.JSONSchemaProps {
+	enum := make([]extv1.JSON, len(statuses))
+	for i, status := range statuses {
+		enum[i] = extv1.JSON{Raw: []byte(`"` + status + `"`)}
+	}
+	return extv1.JSONSchemaProps{
+		Type:     "object",
+		Required: []string{"status"},
+		Properties: map[string]extv1.JSONSchemaProps{
+			"status": {
+				Type: "string",
+				Enum: enum,
+			},
+			"reason": {
+				Type:      "string",
+				MaxLength: new(int64(1024)),
+				Pattern:   `^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$`,
+			},
+			"message": {
+				Type:      "string",
+				MaxLength: new(int64(32768)),
+			},
+			"lastTransitionTime": {
+				Type:   "string",
+				Format: "date-time",
+			},
+		},
+	}
+}

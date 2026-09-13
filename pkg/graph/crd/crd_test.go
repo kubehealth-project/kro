@@ -454,3 +454,28 @@ func TestNewCRDSchema(t *testing.T) {
 		})
 	}
 }
+
+func TestSetCRDStatusWithKubeHealth(t *testing.T) {
+	instanceCRD := SynthesizeCRD(
+		"kro.run",
+		"v1alpha1",
+		"Website",
+		extv1.JSONSchemaProps{Type: "object"},
+		extv1.JSONSchemaProps{},
+		false,
+		extv1.NamespaceScoped,
+		&v1alpha1.Schema{},
+	)
+
+	SetCRDStatusWithKubeHealth(instanceCRD, extv1.JSONSchemaProps{Type: "object"}, true)
+
+	status := instanceCRD.Spec.Versions[0].Schema.OpenAPIV3Schema.Properties["status"]
+	kubeHealth, ok := status.Properties["kubeHealth"]
+	require.True(t, ok)
+	assert.ElementsMatch(t,
+		[]string{"contractVersion", "observedGeneration", "reconciliation", "availability", "lifecycle"},
+		kubeHealth.Required,
+	)
+	assert.Equal(t, "integer", kubeHealth.Properties["observedGeneration"].Type)
+	assert.Equal(t, "date-time", kubeHealth.Properties["reconciliation"].Properties["lastTransitionTime"].Format)
+}

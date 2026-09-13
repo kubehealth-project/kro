@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubehealth-project/kubehealth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
@@ -168,7 +169,8 @@ func newGraphEngineControllerUnderTest(
 	controller := NewController(
 		zap.New(zap.UseDevMode(true)),
 		ReconcileConfig{
-			DefaultRequeueDuration: 2 * time.Second,
+			DefaultRequeueDuration:        2 * time.Second,
+			StandardKubeHealthPropagation: rgdSpec != nil && rgdSpec.StandardKubeHealthPropagationEnabled(),
 		},
 		controllerTestParentGVR,
 		registry.ResolverFor(controllerTestParentGVR.Resource),
@@ -910,6 +912,29 @@ func TestReconcileViaGraphEngine_Success(t *testing.T) {
 		status, _, _ := unstructured.NestedMap(stored.Object, "status")
 		require.NotNil(t, status)
 		assert.Equal(t, string(v1alpha1.InstanceStateActive), status["state"])
+	})
+
+	t.Run("Successful apply propagates child health when enabled", func(t *testing.T) {
+		inst := newInstanceObject("demo", "default")
+		inst.SetGeneration(4)
+		raw := newControllerTestDynamicClient(t, inst.DeepCopy())
+		fakeRuntimeCl := newFakeRuntimeClient(t)
+		spec := testRGDSpecWithConfigMap("app-config", "")
+		spec.KubeHealth = &v1alpha1.KubeHealthConfig{StandardHealthPropagation: true}
+		c, _ := newGraphEngineControllerUnderTest(t, raw, spec, revisions.RevisionStateActive, comp, fakeRuntimeCl)
+
+		err := c.reconcileViaGraphEngine(context.Background(), inst, &fakeInstanceWatcher{})
+		require.NoError(t, err)
+
+		stored := getStoredParentObject(t, raw)
+		status, _, _ := unstructured.NestedMap(stored.Object, "status")
+		kubeHealth, found, nestedErr := unstructured.NestedMap(status, "kubeHealth")
+		require.NoError(t, nestedErr)
+		require.True(t, found)
+		assert.Equal(t, int64(4), kubeHealth["observedGeneration"])
+		assert.Equal(t, string(kubehealth.ReconciliationReconciled), nestedStatus(t, kubeHealth, "reconciliation"))
+		assert.Equal(t, string(kubehealth.AvailabilityAvailable), nestedStatus(t, kubeHealth, "availability"))
+		assert.Equal(t, string(kubehealth.LifecycleActive), nestedStatus(t, kubeHealth, "lifecycle"))
 	})
 
 	t.Run("Reconcile end-to-end via Controller.Reconcile", func(t *testing.T) {

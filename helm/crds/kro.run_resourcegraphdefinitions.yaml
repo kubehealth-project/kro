@@ -69,6 +69,18 @@ spec:
               It contains the schema for instances (defining the CRD structure) and the list of
               Kubernetes resources that make up the graph.
             properties:
+              kubehealth:
+                description: KubeHealth configures KubeHealth integration for generated
+                  instances.
+                properties:
+                  standardHealthPropagation:
+                    default: false
+                    description: |-
+                      StandardHealthPropagation makes kro assess the resources in an instance's
+                      graph with KubeHealth, aggregate their reconciliation and availability,
+                      and report the result on the instance under status.kubeHealth.
+                    type: boolean
+                type: object
               resources:
                 description: |-
                   Resources is the list of Kubernetes resources that will be created and managed

@@ -27,6 +27,11 @@ import (
 // It contains the schema for instances (defining the CRD structure) and the list of
 // Kubernetes resources that make up the graph.
 type ResourceGraphDefinitionSpec struct {
+	// KubeHealth configures KubeHealth integration for generated instances.
+	//
+	// +kubebuilder:validation:Optional
+	KubeHealth *KubeHealthConfig `json:"kubehealth,omitempty"`
+
 	// Schema defines the structure of instances created from this ResourceGraphDefinition.
 	// It specifies the API version, kind, and fields (spec/status) for the generated CRD.
 	// Use SimpleSchema syntax to define the instance schema concisely.
@@ -39,6 +44,24 @@ type ResourceGraphDefinitionSpec struct {
 	//
 	// +kubebuilder:validation:Optional
 	Resources []*Resource `json:"resources,omitempty"`
+}
+
+// KubeHealthConfig configures how kro reports KubeHealth for generated
+// instances.
+type KubeHealthConfig struct {
+	// StandardHealthPropagation makes kro assess the resources in an instance's
+	// graph with KubeHealth, aggregate their reconciliation and availability,
+	// and report the result on the instance under status.kubeHealth.
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=false
+	StandardHealthPropagation bool `json:"standardHealthPropagation,omitempty"`
+}
+
+// StandardKubeHealthPropagationEnabled reports whether standard child health
+// propagation is enabled for this ResourceGraphDefinition.
+func (s ResourceGraphDefinitionSpec) StandardKubeHealthPropagationEnabled() bool {
+	return s.KubeHealth != nil && s.KubeHealth.StandardHealthPropagation
 }
 
 // Schema defines the structure and behavior of instances created from a ResourceGraphDefinition.

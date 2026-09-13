@@ -133,6 +133,16 @@ func newCRDAdditionalPrinterColumns(additionalPrinterColumns []extv1.CustomResou
 // This allows synthesizing a CRD early (with empty status) and updating it later
 // after the status schema has been inferred from CEL expressions.
 func SetCRDStatus(crd *extv1.CustomResourceDefinition, status extv1.JSONSchemaProps, statusFieldsOverride bool) {
+	setCRDStatus(crd, status, statusFieldsOverride, false)
+}
+
+// SetCRDStatusWithKubeHealth updates the status schema and includes the
+// controller-owned status.kubeHealth contract.
+func SetCRDStatusWithKubeHealth(crd *extv1.CustomResourceDefinition, status extv1.JSONSchemaProps, statusFieldsOverride bool) {
+	setCRDStatus(crd, status, statusFieldsOverride, true)
+}
+
+func setCRDStatus(crd *extv1.CustomResourceDefinition, status extv1.JSONSchemaProps, statusFieldsOverride, kubeHealthPropagation bool) {
 	if status.Properties == nil {
 		status.Properties = make(map[string]extv1.JSONSchemaProps)
 	}
@@ -143,6 +153,12 @@ func SetCRDStatus(crd *extv1.CustomResourceDefinition, status extv1.JSONSchemaPr
 		if _, ok := status.Properties["conditions"]; !ok {
 			status.Properties["conditions"] = defaultConditionsType
 		}
+	}
+	if kubeHealthPropagation {
+		if _, ok := status.Properties["kubeHealth"]; ok {
+			return
+		}
+		status.Properties["kubeHealth"] = defaultKubeHealthType
 	}
 
 	// Update the status in the CRD schema

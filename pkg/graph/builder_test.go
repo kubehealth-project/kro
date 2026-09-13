@@ -4406,6 +4406,44 @@ func TestBuildStatusSchema(t *testing.T) {
 	}
 }
 
+func TestKubeHealthPropagationStatusSchema(t *testing.T) {
+	fakeResolver, fakeDiscovery := k8s.NewFakeResolver()
+	builder := &Builder{
+		schemaResolver: fakeResolver,
+		restMapper:     restmapper.NewDeferredDiscoveryRESTMapper(memory2.NewMemCacheClient(fakeDiscovery)),
+	}
+	rgd := generator.NewResourceGraphDefinition(
+		"kubehealth-status",
+		generator.WithSchema("WebApp", "v1alpha1", map[string]any{}, map[string]any{}),
+	)
+	rgd.Spec.KubeHealth = &krov1alpha1.KubeHealthConfig{StandardHealthPropagation: true}
+
+	graph, err := builder.NewResourceGraphDefinition(rgd, defaultRGDConfig)
+	require.NoError(t, err)
+
+	status := graph.CRD.Spec.Versions[0].Schema.OpenAPIV3Schema.Properties["status"]
+	assert.Contains(t, status.Properties, "kubeHealth")
+}
+
+func TestKubeHealthPropagationRejectsAuthorOwnedStatusField(t *testing.T) {
+	fakeResolver, fakeDiscovery := k8s.NewFakeResolver()
+	builder := &Builder{
+		schemaResolver: fakeResolver,
+		restMapper:     restmapper.NewDeferredDiscoveryRESTMapper(memory2.NewMemCacheClient(fakeDiscovery)),
+	}
+	rgd := generator.NewResourceGraphDefinition(
+		"kubehealth-conflict",
+		generator.WithSchema("WebApp", "v1alpha1", map[string]any{}, map[string]any{
+			"kubeHealth": "${{'manual': 'value'}}",
+		}),
+	)
+	rgd.Spec.KubeHealth = &krov1alpha1.KubeHealthConfig{StandardHealthPropagation: true}
+
+	_, err := builder.NewResourceGraphDefinition(rgd, defaultRGDConfig)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "status.kubeHealth is managed by standard KubeHealth propagation")
+}
+
 func TestGetSchemaWithoutStatus(t *testing.T) {
 	tests := []struct {
 		name             string

@@ -265,6 +265,47 @@ Each condition includes:
 
 Values you defined in your ResourceGraphDefinition's status section, automatically updated as resources change.
 
+### Optional KubeHealth status
+
+An RGD can ask kro to assess its managed resources with KubeHealth and report
+their aggregate health on the instance:
+
+```yaml
+spec:
+  kubehealth:
+    standardHealthPropagation: true
+  schema:
+    apiVersion: v1alpha1
+    kind: WebApplication
+```
+
+When enabled, kro owns `status.kubeHealth`. Do not also define `kubeHealth` in
+`spec.schema.status`. The report contains independent reconciliation,
+availability, and lifecycle dimensions:
+
+```yaml
+status:
+  kubeHealth:
+    contractVersion: v1alpha1
+    observedGeneration: 1
+    reconciliation:
+      status: Failed
+      reason: ChildResourcesAggregated
+    availability:
+      status: Available
+      reason: ChildResourcesAggregated
+    lifecycle:
+      status: Active
+      reason: DeletionNotRequested
+```
+
+Only resources created by the RGD's `template` entries participate. Read-only
+`externalRef` resources and orchestration-only nodes are excluded. Child
+reconciliation and availability use KubeHealth's standard aggregation policy,
+while lifecycle comes from the instance itself. This allows an instance to
+report, for example, `Failed + Available + Active` when a child rollout fails
+but its previous revision continues serving.
+
 ## Debugging Instance Issues
 
 When an instance is not in the expected state, the condition hierarchy helps you quickly identify where the problem occurred:

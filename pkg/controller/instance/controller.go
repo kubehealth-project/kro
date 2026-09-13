@@ -62,6 +62,9 @@ type ReconcileConfig struct {
 	// `conditions:` block, which replaces kro's built-in conditions on
 	// .status.conditions[].
 	HasAuthorConditions bool
+	// StandardKubeHealthPropagation makes the controller assess graph resources
+	// and report their aggregate health under status.kubeHealth on the instance.
+	StandardKubeHealthPropagation bool
 	// MaxCollectionSize is the maximum number of instances a single
 	// forEach collection expansion may generate.
 	MaxCollectionSize int

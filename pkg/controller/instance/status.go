@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/kubehealth-project/kubehealth"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -176,6 +177,19 @@ func (c *Controller) updateConditionsStatus(ctx context.Context, inst *unstructu
 			}
 		}
 		status["state"] = string(v1alpha1.InstanceStateError)
+		if c.reconcileConfig.StandardKubeHealthPropagation {
+			kubeHealth, kubeHealthErr := propagatedNodeFreeKubeHealth(
+				inst,
+				captureWireStatus(cur),
+				kubehealth.ReconciliationFailed,
+				"GraphResolutionFailed",
+				"The child resource graph could not be resolved",
+			)
+			if kubeHealthErr != nil {
+				return kubeHealthErr
+			}
+			status["kubeHealth"] = kubeHealth
+		}
 		cur.Object["status"] = status
 		// Mirror persisted status onto the instance so the deferred
 		// emitters read what's on the wire, not the marker's built-ins.
@@ -219,6 +233,21 @@ func (c *Controller) persistNodeFreeStatus(
 	}
 	if c.reconcileConfig.HasAuthorConditions {
 		status["conditions"] = deletionConditions(inst, wireStatus)
+	}
+	if c.reconcileConfig.StandardKubeHealthPropagation {
+		reconciliation := kubehealth.ReconciliationStatus("")
+		reason := ""
+		message := ""
+		if inst.GetDeletionTimestamp() == nil {
+			reconciliation = kubehealth.ReconciliationSuspended
+			reason = "ReconciliationSuspended"
+			message = "Instance reconciliation is suspended"
+		}
+		kubeHealth, err := propagatedNodeFreeKubeHealth(inst, wireStatus, reconciliation, reason, message)
+		if err != nil {
+			return err
+		}
+		status["kubeHealth"] = kubeHealth
 	}
 	return c.persistStatus(ctx, instanceClient, inst, wireStatus, status, previousState)
 }
@@ -311,7 +340,7 @@ func (c *Controller) persistConditionsAndState(
 	status map[string]any,
 	previousState string,
 ) error {
-	// Mirror conditions/state onto the instance for the deferred emitters,
+	// Mirror controller-owned fields onto the instance for the deferred emitters,
 	// leaving any author status fields already present untouched.
 	if inst.Object["status"] == nil {
 		inst.Object["status"] = map[string]any{}
@@ -319,12 +348,23 @@ func (c *Controller) persistConditionsAndState(
 	if s, ok := inst.Object["status"].(map[string]any); ok {
 		s["conditions"] = status["conditions"]
 		s["state"] = status["state"]
+		if kubeHealth, ok := status["kubeHealth"]; ok {
+			s["kubeHealth"] = kubeHealth
+		}
 	}
 
 	// Skip the API write when the wire already carries identical conditions+state.
 	wireCS := map[string]any{
 		"conditions": wireStatus["conditions"],
 		"state":      wireStatus["state"],
+	}
+	if kubeHealth, ok := status["kubeHealth"]; ok {
+		wireCS["kubeHealth"] = wireStatus["kubeHealth"]
+		status = map[string]any{
+			"conditions": status["conditions"],
+			"state":      status["state"],
+			"kubeHealth": kubeHealth,
+		}
 	}
 	if statusesMatch(wireCS, status) {
 		return nil
