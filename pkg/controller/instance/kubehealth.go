@@ -104,6 +104,12 @@ func propagatedKubeHealth(
 			kubeHealthTerminatingReason,
 			"The instance is terminating",
 		)
+	} else if pending > 0 {
+		health.SetLifecycle(
+			kubehealth.LifecycleInitializing,
+			kubeHealthChildrenPendingReason,
+			"The instance is waiting for child resources to be observed",
+		)
 	} else {
 		health.SetLifecycle(
 			kubehealth.LifecycleActive,
@@ -150,7 +156,7 @@ func childAssessments(rt *geruntime.Runtime) ([]kubehealth.Assessment, int, int,
 					Status: kubehealth.AvailabilityUnknown,
 				},
 				Lifecycle: kubehealth.Dimension[kubehealth.LifecycleStatus]{
-					Status: kubehealth.LifecycleActive,
+					Status: kubehealth.LifecycleInitializing,
 				},
 			})
 			continue

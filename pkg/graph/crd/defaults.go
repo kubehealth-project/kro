@@ -57,7 +57,7 @@ var (
 		"Available", "PartiallyAvailable", "Unavailable", "Unknown", "NotApplicable",
 	)
 	kubeHealthLifecycleDimensionType = kubeHealthDimensionSchema(
-		"Active", "Terminating",
+		"Initializing", "Active", "Terminating",
 	)
 	defaultKubeHealthType = extv1.JSONSchemaProps{
 		Type:     "object",

@@ -59,6 +59,7 @@ func TestPropagatedKubeHealthMarksUnobservedTemplatePending(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, string(kubehealth.ReconciliationInProgress), nestedStatus(t, got, "reconciliation"))
 	assert.Equal(t, string(kubehealth.AvailabilityUnknown), nestedStatus(t, got, "availability"))
+	assert.Equal(t, string(kubehealth.LifecycleInitializing), nestedStatus(t, got, "lifecycle"))
 	assert.Equal(t, kubeHealthChildrenPendingReason, nestedReason(t, got, "reconciliation"))
 }
 
@@ -106,7 +107,7 @@ func TestPropagatedKubeHealthPreservesTransitionTime(t *testing.T) {
 				"lastTransitionTime": previousTime,
 			},
 			"lifecycle": map[string]any{
-				"status":             string(kubehealth.LifecycleActive),
+				"status":             string(kubehealth.LifecycleInitializing),
 				"lastTransitionTime": previousTime,
 			},
 		},
