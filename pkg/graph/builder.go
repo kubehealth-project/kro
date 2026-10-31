@@ -164,13 +164,13 @@ func (b *Builder) NewResourceGraphDefinition(originalCR *v1alpha1.ResourceGraphD
 		}
 		resourceSpecs = append(resourceSpecs, rs)
 	}
-	if rgd.Spec.StandardKubeHealthPropagationEnabled() {
+	if rgd.Spec.StandardKubeHealthAggregationEnabled() {
 		unstructuredStatus := map[string]any{}
 		if err := yaml.UnmarshalStrict(rgd.Spec.Schema.Status.Raw, &unstructuredStatus); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal status schema: %w", err)
 		}
 		if _, exists := unstructuredStatus["kubeHealth"]; exists {
-			return nil, fmt.Errorf("status.kubeHealth is managed by standard KubeHealth propagation and cannot be declared in schema.status")
+			return nil, fmt.Errorf("status.kubeHealth is managed by standard KubeHealth aggregation and cannot be declared in schema.status")
 		}
 	}
 
@@ -184,7 +184,7 @@ func (b *Builder) NewResourceGraphDefinition(originalCR *v1alpha1.ResourceGraphD
 	if err != nil {
 		return nil, err
 	}
-	if rgd.Spec.StandardKubeHealthPropagationEnabled() {
+	if rgd.Spec.StandardKubeHealthAggregationEnabled() {
 		crd.SetCRDStatusWithKubeHealth(instanceCRD, *statusSchema, true)
 	} else {
 		crd.SetCRDStatus(instanceCRD, *statusSchema, true)

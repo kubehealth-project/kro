@@ -177,8 +177,8 @@ func (c *Controller) updateConditionsStatus(ctx context.Context, inst *unstructu
 			}
 		}
 		status["state"] = string(v1alpha1.InstanceStateError)
-		if c.reconcileConfig.StandardKubeHealthPropagation {
-			kubeHealth, kubeHealthErr := propagatedNodeFreeKubeHealth(
+		if c.reconcileConfig.StandardKubeHealthAggregation {
+			kubeHealth, kubeHealthErr := standardAggregatedNodeFreeKubeHealth(
 				inst,
 				captureWireStatus(cur),
 				kubehealth.ReconciliationFailed,
@@ -234,7 +234,7 @@ func (c *Controller) persistNodeFreeStatus(
 	if c.reconcileConfig.HasAuthorConditions {
 		status["conditions"] = deletionConditions(inst, wireStatus)
 	}
-	if c.reconcileConfig.StandardKubeHealthPropagation {
+	if c.reconcileConfig.StandardKubeHealthAggregation {
 		reconciliation := kubehealth.ReconciliationStatus("")
 		reason := ""
 		message := ""
@@ -243,7 +243,7 @@ func (c *Controller) persistNodeFreeStatus(
 			reason = "ReconciliationSuspended"
 			message = "Instance reconciliation is suspended"
 		}
-		kubeHealth, err := propagatedNodeFreeKubeHealth(inst, wireStatus, reconciliation, reason, message)
+		kubeHealth, err := standardAggregatedNodeFreeKubeHealth(inst, wireStatus, reconciliation, reason, message)
 		if err != nil {
 			return err
 		}

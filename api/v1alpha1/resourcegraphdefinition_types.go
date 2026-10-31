@@ -49,19 +49,19 @@ type ResourceGraphDefinitionSpec struct {
 // KubeHealthConfig configures how kro reports KubeHealth for generated
 // instances.
 type KubeHealthConfig struct {
-	// StandardHealthPropagation makes kro assess the resources in an instance's
+	// StandardHealthAggregation makes kro assess the resources in an instance's
 	// graph with KubeHealth, aggregate their reconciliation and availability,
 	// and report the result on the instance under status.kubeHealth.
 	//
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default=false
-	StandardHealthPropagation bool `json:"standardHealthPropagation,omitempty"`
+	StandardHealthAggregation bool `json:"standardHealthAggregation,omitempty"`
 }
 
-// StandardKubeHealthPropagationEnabled reports whether standard child health
-// propagation is enabled for this ResourceGraphDefinition.
-func (s ResourceGraphDefinitionSpec) StandardKubeHealthPropagationEnabled() bool {
-	return s.KubeHealth != nil && s.KubeHealth.StandardHealthPropagation
+// StandardKubeHealthAggregationEnabled reports whether standard child health
+// aggregation is enabled for this ResourceGraphDefinition.
+func (s ResourceGraphDefinitionSpec) StandardKubeHealthAggregationEnabled() bool {
+	return s.KubeHealth != nil && s.KubeHealth.StandardHealthAggregation
 }
 
 // Schema defines the structure and behavior of instances created from a ResourceGraphDefinition.

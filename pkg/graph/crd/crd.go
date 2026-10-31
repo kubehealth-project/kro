@@ -142,7 +142,7 @@ func SetCRDStatusWithKubeHealth(crd *extv1.CustomResourceDefinition, status extv
 	setCRDStatus(crd, status, statusFieldsOverride, true)
 }
 
-func setCRDStatus(crd *extv1.CustomResourceDefinition, status extv1.JSONSchemaProps, statusFieldsOverride, kubeHealthPropagation bool) {
+func setCRDStatus(crd *extv1.CustomResourceDefinition, status extv1.JSONSchemaProps, statusFieldsOverride, includeKubeHealthAggregation bool) {
 	if status.Properties == nil {
 		status.Properties = make(map[string]extv1.JSONSchemaProps)
 	}
@@ -154,7 +154,7 @@ func setCRDStatus(crd *extv1.CustomResourceDefinition, status extv1.JSONSchemaPr
 			status.Properties["conditions"] = defaultConditionsType
 		}
 	}
-	if kubeHealthPropagation {
+	if includeKubeHealthAggregation {
 		if _, ok := status.Properties["kubeHealth"]; ok {
 			return
 		}

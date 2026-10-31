@@ -273,7 +273,7 @@ their aggregate health on the instance:
 ```yaml
 spec:
   kubehealth:
-    standardHealthPropagation: true
+    standardHealthAggregation: true
   schema:
     apiVersion: v1alpha1
     kind: WebApplication

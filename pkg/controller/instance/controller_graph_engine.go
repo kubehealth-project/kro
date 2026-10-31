@@ -924,10 +924,10 @@ func (c *Controller) persistGraphEngineStatus(
 		}
 	}
 
-	if c.reconcileConfig.StandardKubeHealthPropagation {
-		kubeHealth, err := propagatedKubeHealth(inst, rt, wireStatus, !cs.IsRootReady(), degraded)
+	if c.reconcileConfig.StandardKubeHealthAggregation {
+		kubeHealth, err := standardAggregatedKubeHealth(inst, rt, wireStatus, !cs.IsRootReady(), degraded)
 		if err != nil {
-			return fmt.Errorf("propagate KubeHealth status: %w", err)
+			return fmt.Errorf("aggregate KubeHealth status: %w", err)
 		}
 		status["kubeHealth"] = kubeHealth
 	}

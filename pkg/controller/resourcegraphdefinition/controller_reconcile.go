@@ -196,7 +196,7 @@ func (r *ResourceGraphDefinitionReconciler) setupMicroController(
 		instancectrl.ReconcileConfig{
 			DefaultRequeueDuration:        r.cfg.InstanceRequeueInterval,
 			HasAuthorConditions:           len(processedRGD.Instance.Conditions) > 0,
-			StandardKubeHealthPropagation: rgd.Spec.StandardKubeHealthPropagationEnabled(),
+			StandardKubeHealthAggregation: rgd.Spec.StandardKubeHealthAggregationEnabled(),
 			MaxCollectionSize:             r.cfg.RGDConfig.MaxCollectionSize,
 			ApplyConcurrency:              r.cfg.ApplyConcurrency,
 			CELCostLimit:                  r.cfg.CELCostLimit,

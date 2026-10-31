@@ -385,14 +385,14 @@ func TestSpecCases(t *testing.T) {
 	}
 }
 
-func TestKubeHealthPropagationAffectsSpecHash(t *testing.T) {
+func TestKubeHealthAggregationAffectsSpecHash(t *testing.T) {
 	without := v1alpha1.ResourceGraphDefinitionSpec{
 		Schema: &v1alpha1.Schema{Kind: "App", APIVersion: "v1alpha1"},
 	}
 	disabled := *without.DeepCopy()
 	disabled.KubeHealth = &v1alpha1.KubeHealthConfig{}
 	enabled := *without.DeepCopy()
-	enabled.KubeHealth = &v1alpha1.KubeHealthConfig{StandardHealthPropagation: true}
+	enabled.KubeHealth = &v1alpha1.KubeHealthConfig{StandardHealthAggregation: true}
 
 	assertSameHash(t, without, disabled)
 	assertDifferentHashes(t, without, enabled)

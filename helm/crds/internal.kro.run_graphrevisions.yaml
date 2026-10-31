@@ -93,10 +93,10 @@ spec:
                         description: KubeHealth configures KubeHealth integration
                           for generated instances.
                         properties:
-                          standardHealthPropagation:
+                          standardHealthAggregation:
                             default: false
                             description: |-
-                              StandardHealthPropagation makes kro assess the resources in an instance's
+                              StandardHealthAggregation makes kro assess the resources in an instance's
                               graph with KubeHealth, aggregate their reconciliation and availability,
                               and report the result on the instance under status.kubeHealth.
                             type: boolean

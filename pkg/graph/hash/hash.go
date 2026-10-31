@@ -76,7 +76,7 @@ func normalizeSpec(spec v1alpha1.ResourceGraphDefinitionSpec) (v1alpha1.Resource
 	if normalized.Resources == nil {
 		normalized.Resources = []*v1alpha1.Resource{}
 	}
-	if normalized.KubeHealth != nil && !normalized.KubeHealth.StandardHealthPropagation {
+	if normalized.KubeHealth != nil && !normalized.KubeHealth.StandardHealthAggregation {
 		normalized.KubeHealth = nil
 	}
 

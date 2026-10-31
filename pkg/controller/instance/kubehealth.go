@@ -39,11 +39,11 @@ const (
 	kubeHealthAssessmentErrorReason = "ChildAssessmentFailed"
 )
 
-// propagatedKubeHealth assesses every concrete resource observed by the graph
+// standardAggregatedKubeHealth assesses every concrete resource observed by the graph
 // runtime and builds the operator-reported status for the generated instance.
 // Def, ref, patch, and graph nodes are orchestration details or resources
 // outside the instance's ownership, so they do not participate.
-func propagatedKubeHealth(
+func standardAggregatedKubeHealth(
 	inst *unstructured.Unstructured,
 	rt *geruntime.Runtime,
 	previous map[string]any,
@@ -120,7 +120,7 @@ func propagatedKubeHealth(
 
 	value, err := runtime.DefaultUnstructuredConverter.ToUnstructured(health)
 	if err != nil {
-		return nil, fmt.Errorf("encode propagated KubeHealth status: %w", err)
+		return nil, fmt.Errorf("encode aggregated KubeHealth status: %w", err)
 	}
 	return value, nil
 }
@@ -173,7 +173,7 @@ func childAssessments(rt *geruntime.Runtime) ([]kubehealth.Assessment, int, int,
 	return assessments, observed, pending, nil
 }
 
-func propagatedNodeFreeKubeHealth(
+func standardAggregatedNodeFreeKubeHealth(
 	inst *unstructured.Unstructured,
 	previous map[string]any,
 	reconciliation kubehealth.ReconciliationStatus,
@@ -208,7 +208,7 @@ func propagatedNodeFreeKubeHealth(
 
 	value, err := runtime.DefaultUnstructuredConverter.ToUnstructured(health)
 	if err != nil {
-		return nil, fmt.Errorf("encode propagated KubeHealth status: %w", err)
+		return nil, fmt.Errorf("encode aggregated KubeHealth status: %w", err)
 	}
 	return value, nil
 }

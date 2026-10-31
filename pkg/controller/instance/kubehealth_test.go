@@ -34,7 +34,7 @@ import (
 	geruntime "github.com/kubernetes-sigs/kro/pkg/graphengine/runtime"
 )
 
-func TestPropagatedKubeHealthAggregatesObservedChildren(t *testing.T) {
+func TestAggregatedKubeHealthIncludesObservedChildren(t *testing.T) {
 	inst := newInstanceObject("demo", "default")
 	inst.SetGeneration(7)
 	rt := runtimeWithKubeHealthChildren(
@@ -42,7 +42,7 @@ func TestPropagatedKubeHealthAggregatesObservedChildren(t *testing.T) {
 		newConfigMapObject("config", "default"),
 	)
 
-	got, err := propagatedKubeHealth(inst, rt, nil, false, false)
+	got, err := standardAggregatedKubeHealth(inst, rt, nil, false, false)
 	require.NoError(t, err)
 	assert.Equal(t, healthv1alpha1.ContractVersion, got["contractVersion"])
 	assert.Equal(t, int64(7), got["observedGeneration"])
@@ -51,11 +51,11 @@ func TestPropagatedKubeHealthAggregatesObservedChildren(t *testing.T) {
 	assert.Equal(t, string(kubehealth.LifecycleActive), nestedStatus(t, got, "lifecycle"))
 }
 
-func TestPropagatedKubeHealthMarksUnobservedTemplatePending(t *testing.T) {
+func TestAggregatedKubeHealthMarksUnobservedTemplatePending(t *testing.T) {
 	inst := newInstanceObject("demo", "default")
 	rt := runtimeWithKubeHealthChildren(nil)
 
-	got, err := propagatedKubeHealth(inst, rt, nil, false, false)
+	got, err := standardAggregatedKubeHealth(inst, rt, nil, false, false)
 	require.NoError(t, err)
 	assert.Equal(t, string(kubehealth.ReconciliationInProgress), nestedStatus(t, got, "reconciliation"))
 	assert.Equal(t, string(kubehealth.AvailabilityUnknown), nestedStatus(t, got, "availability"))
@@ -63,18 +63,18 @@ func TestPropagatedKubeHealthMarksUnobservedTemplatePending(t *testing.T) {
 	assert.Equal(t, kubeHealthChildrenPendingReason, nestedReason(t, got, "reconciliation"))
 }
 
-func TestPropagatedKubeHealthReflectsGraphReconciliationFailure(t *testing.T) {
+func TestAggregatedKubeHealthReflectsGraphReconciliationFailure(t *testing.T) {
 	inst := newInstanceObject("demo", "default")
 	rt := runtimeWithKubeHealthChildren(healthyKubeHealthDeployment("app"))
 
-	got, err := propagatedKubeHealth(inst, rt, nil, true, true)
+	got, err := standardAggregatedKubeHealth(inst, rt, nil, true, true)
 	require.NoError(t, err)
 	assert.Equal(t, string(kubehealth.ReconciliationFailed), nestedStatus(t, got, "reconciliation"))
 	assert.Equal(t, string(kubehealth.AvailabilityAvailable), nestedStatus(t, got, "availability"))
 	assert.Equal(t, kubeHealthChildrenFailedReason, nestedReason(t, got, "reconciliation"))
 }
 
-func TestPropagatedKubeHealthKeepsFailedChildAvailable(t *testing.T) {
+func TestAggregatedKubeHealthKeepsFailedChildAvailable(t *testing.T) {
 	inst := newInstanceObject("demo", "default")
 	deployment := healthyKubeHealthDeployment("app")
 	deployment.Status.Conditions = []appsv1.DeploymentCondition{{
@@ -84,13 +84,13 @@ func TestPropagatedKubeHealthKeepsFailedChildAvailable(t *testing.T) {
 	}}
 	rt := runtimeWithKubeHealthChildren(deployment)
 
-	got, err := propagatedKubeHealth(inst, rt, nil, false, false)
+	got, err := standardAggregatedKubeHealth(inst, rt, nil, false, false)
 	require.NoError(t, err)
 	assert.Equal(t, string(kubehealth.ReconciliationFailed), nestedStatus(t, got, "reconciliation"))
 	assert.Equal(t, string(kubehealth.AvailabilityAvailable), nestedStatus(t, got, "availability"))
 }
 
-func TestPropagatedKubeHealthPreservesTransitionTime(t *testing.T) {
+func TestAggregatedKubeHealthPreservesTransitionTime(t *testing.T) {
 	inst := newInstanceObject("demo", "default")
 	inst.SetGeneration(2)
 	previousTime := "2026-09-13T12:00:00Z"
@@ -114,7 +114,7 @@ func TestPropagatedKubeHealthPreservesTransitionTime(t *testing.T) {
 	}
 	rt := runtimeWithKubeHealthChildren(nil)
 
-	got, err := propagatedKubeHealth(inst, rt, previous, false, false)
+	got, err := standardAggregatedKubeHealth(inst, rt, previous, false, false)
 	require.NoError(t, err)
 	assert.Equal(t, previousTime, nestedTransitionTime(t, got, "reconciliation"))
 	assert.Equal(t, previousTime, nestedTransitionTime(t, got, "availability"))
@@ -122,12 +122,12 @@ func TestPropagatedKubeHealthPreservesTransitionTime(t *testing.T) {
 	assert.Equal(t, int64(2), got["observedGeneration"])
 }
 
-func TestPropagatedNodeFreeKubeHealthReportsTermination(t *testing.T) {
+func TestAggregatedNodeFreeKubeHealthReportsTermination(t *testing.T) {
 	inst := newInstanceObject("demo", "default")
 	now := metav1.Now()
 	inst.SetDeletionTimestamp(&now)
 
-	got, err := propagatedNodeFreeKubeHealth(inst, nil, "", "", "")
+	got, err := standardAggregatedNodeFreeKubeHealth(inst, nil, "", "", "")
 	require.NoError(t, err)
 	assert.Equal(t, string(kubehealth.LifecycleTerminating), nestedStatus(t, got, "lifecycle"))
 	assert.Equal(t, string(kubehealth.ReconciliationUnknown), nestedStatus(t, got, "reconciliation"))

@@ -448,14 +448,14 @@ override them with its own values.
 
 :::
 
-### Optional KubeHealth field
+### Standard KubeHealth aggregation
 
-Enable standard KubeHealth propagation at the RGD spec level:
+Enable standard KubeHealth aggregation at the RGD spec level:
 
 ```kro
 spec:
   kubehealth:
-    standardHealthPropagation: true
+    standardHealthAggregation: true
 ```
 
 When enabled, kro also injects and owns `status.kubeHealth`. It assesses the

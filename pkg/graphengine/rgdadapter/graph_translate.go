@@ -126,9 +126,9 @@ func authorStatusPatchNode(rgd *v1alpha1.ResourceGraphDefinition) (v1alpha1.Node
 	// the remaining author status fields move to the node.
 	delete(statusMap, "conditions")
 	delete(statusMap, "state")
-	if rgd.Spec.StandardKubeHealthPropagationEnabled() {
+	if rgd.Spec.StandardKubeHealthAggregationEnabled() {
 		if _, exists := statusMap["kubeHealth"]; exists {
-			return v1alpha1.Node{}, false, fmt.Errorf("rgdadapter: status.kubeHealth is managed by standard KubeHealth propagation")
+			return v1alpha1.Node{}, false, fmt.Errorf("rgdadapter: status.kubeHealth is managed by standard KubeHealth aggregation")
 		}
 	}
 	if len(statusMap) == 0 {

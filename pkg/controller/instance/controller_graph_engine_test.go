@@ -170,7 +170,7 @@ func newGraphEngineControllerUnderTest(
 		zap.New(zap.UseDevMode(true)),
 		ReconcileConfig{
 			DefaultRequeueDuration:        2 * time.Second,
-			StandardKubeHealthPropagation: rgdSpec != nil && rgdSpec.StandardKubeHealthPropagationEnabled(),
+			StandardKubeHealthAggregation: rgdSpec != nil && rgdSpec.StandardKubeHealthAggregationEnabled(),
 		},
 		controllerTestParentGVR,
 		registry.ResolverFor(controllerTestParentGVR.Resource),
@@ -920,7 +920,7 @@ func TestReconcileViaGraphEngine_Success(t *testing.T) {
 		raw := newControllerTestDynamicClient(t, inst.DeepCopy())
 		fakeRuntimeCl := newFakeRuntimeClient(t)
 		spec := testRGDSpecWithConfigMap("app-config", "")
-		spec.KubeHealth = &v1alpha1.KubeHealthConfig{StandardHealthPropagation: true}
+		spec.KubeHealth = &v1alpha1.KubeHealthConfig{StandardHealthAggregation: true}
 		c, _ := newGraphEngineControllerUnderTest(t, raw, spec, revisions.RevisionStateActive, comp, fakeRuntimeCl)
 
 		err := c.reconcileViaGraphEngine(context.Background(), inst, &fakeInstanceWatcher{})
