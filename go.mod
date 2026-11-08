@@ -10,7 +10,7 @@ require (
 	github.com/google/cel-go v0.31.0
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/golang-lru/v2 v2.0.7
-	github.com/kubehealth-project/kubehealth v0.0.0-20260913155506-ab03d335fe3f
+	github.com/kubehealth-project/kubehealth v0.0.0-20261105154137-9c597f100fee
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.43.0
 	github.com/prometheus/client_golang v1.24.1
