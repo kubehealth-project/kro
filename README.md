@@ -1,5 +1,6 @@
 # kro | Kube Resource Orchestrator
 
+> **KubeHealth-enabled fork:** This version of kro includes an experimental, opt-in KubeHealth integration. Set `spec.kubehealth.standardHealthAggregation: true` on a ResourceGraphDefinition to aggregate child-resource health into the generated instance's `status.kubeHealth`.
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/kubernetes-sigs/kro)](https://goreportcard.com/report/github.com/kubernetes-sigs/kro)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/kubernetes-sigs/kro)
